@@ -1,0 +1,25 @@
+{
+	"expo": {
+		"name": "Monetus Challenge",
+		"slug": "monetus_challenge",
+		"sdkVersion": "32.0.0",
+		"version": "1.0.0",
+		"orientation": "portrait",
+		"primaryColor": "#ffffff",
+		"privacy": "public",
+		"icon": "./assets/icons/app-icon.png",
+		"loading": {
+			"icon": "./assets/icons/loading-icon.png"
+		},
+		"androidStatusBar": {
+			"barStyle": "dark-content",
+			"backgroundColor": "#ffffff"
+		},
+		"packagerOpts": {
+			"assetExts": ["ttf", "mp4"]
+		},
+		"ios": {
+			"supportsTablet": true
+		}
+	}
+}
