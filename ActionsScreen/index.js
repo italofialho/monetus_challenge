@@ -18,6 +18,8 @@ class ActionsSectionComponent extends React.Component {
 			symbolDetail: {},
 			showDetails: false,
 			symbolChart: [],
+			lastUpdateTimeOut: 0,
+			updating: false,
 		};
 	}
 
@@ -26,6 +28,13 @@ class ActionsSectionComponent extends React.Component {
 			this.setState({ value });
 		});
 		this.fetchDetailsBySymbol(this.props.symbol);
+		setInterval(() => {
+			this.setState({ lastUpdateTimeOut: this.state.lastUpdateTimeOut - 1 }, () => {
+				if (this.state.lastUpdateTimeOut === 0) {
+					this.updateDetailsBySymbol(this.props.symbol);
+				}
+			});
+		}, 1000);
 	}
 
 	componentWillUnmount() {
@@ -37,7 +46,7 @@ class ActionsSectionComponent extends React.Component {
 			let currentSymbol = String(symbol).toLowerCase();
 			this.setState({ loading: true });
 			let { data } = await axios.get(`https://api.iextrading.com/1.0/stock/${currentSymbol}/quote`);
-			this.setState({ symbolDetail: data, loading: false }, () => {
+			this.setState({ symbolDetail: data, loading: false, lastUpdateTimeOut: 60 }, () => {
 				Animated.timing(this.state.display, {
 					toValue: data.latestPrice,
 					duration: 600,
@@ -47,6 +56,24 @@ class ActionsSectionComponent extends React.Component {
 		} catch (error) {
 			console.log("fetchDetailsBySymbol error:", error);
 			this.setState({ loading: false });
+		}
+	};
+
+	updateDetailsBySymbol = async symbol => {
+		try {
+			let currentSymbol = String(symbol).toLowerCase();
+			this.setState({ updating: true });
+			let { data } = await axios.get(`https://api.iextrading.com/1.0/stock/${currentSymbol}/quote`);
+			this.setState({ symbolDetail: data, updating: false, lastUpdateTimeOut: 60 }, () => {
+				Animated.timing(this.state.display, {
+					toValue: data.latestPrice,
+					duration: 600,
+					useNativeDriver: true,
+				}).start();
+			});
+		} catch (error) {
+			console.log("fetchDetailsBySymbol error:", error);
+			this.setState({ updating: false });
 		}
 	};
 
@@ -152,7 +179,7 @@ class ActionsSectionComponent extends React.Component {
 
 	render() {
 		const valueToRender = this.numberWithCommas(this.state.value.toFixed(this.state.fixed));
-		const { loading, symbolDetail, showDetails } = this.state;
+		const { loading, symbolDetail, showDetails, lastUpdateTimeOut, updating } = this.state;
 		return (
 			<View>
 				<TouchableOpacity onLongPress={() => this.removeSymbol()} onPress={() => this.toggleDetails()}>
@@ -163,6 +190,11 @@ class ActionsSectionComponent extends React.Component {
 						</Text>
 						<Text style={[styles.priceSectionBottom]}>
 							{loading ? "Carregando informações..." : symbolDetail.companyName}
+						</Text>
+						<Text style={[styles.priceSectionBottom]}>
+							{updating
+								? "Atualizando..."
+								: !loading && lastUpdateTimeOut > 0 && `Atualizando em ${lastUpdateTimeOut}s.`}
 						</Text>
 					</View>
 				</TouchableOpacity>
