@@ -2,14 +2,12 @@ import { createStore } from "redux";
 import _ from "underscore";
 
 const INITIAL_STATE = {
-	btc: 0,
-	ltc: 0,
-	euro: 0,
-	eth: 0,
 	isAvailable: false,
 	symbols: [],
 	userSymbols: [],
 	actionsDetails: [],
+	loadingStage: 0,
+	loadingText: "",
 };
 
 const reducer = (state = INITIAL_STATE, action) => {
@@ -22,6 +20,10 @@ const reducer = (state = INITIAL_STATE, action) => {
 			return { ...state, userSymbols: action.data };
 		case "UPDATE_ACTIONS_DETAILS":
 			return { ...state, actionsDetails: _.map(action.data) };
+		case "UPDATE_LOADING_STATE":
+			return { ...state, loadingStage: action.data };
+		case "UPDATE_LOADING_TEXT":
+			return { ...state, loadingText: action.data };
 	}
 };
 

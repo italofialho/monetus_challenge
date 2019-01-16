@@ -24,38 +24,34 @@ export default class AppScreen extends React.Component {
 		loadingText: "Carregando...",
 	};
 
-	componentDidMount() {
-		this.getUserSymbols();
+	async componentDidMount() {
+		await this.getSymbols();
+		await this.getUserSymbols();
 	}
 
-	componentWillReceiveProps(nextProps) {
-		console.log("AppScreen componentWillReceiveProps:", nextProps);
-	}
+	getSymbols = async () => {
+		try {
+			this.props.dispatch({
+				type: "UPDATE_LOADING_TEXT",
+				data: "Carregando lista de simbolos...",
+			});
+			const { data } = await axios.get("https://api.iextrading.com/1.0/ref-data/symbols");
+			this.props.dispatch({
+				type: "UPDATE_SYMBOLS",
+				data: data,
+			});
+		} catch (error) {
+			console.log("getUserSymbols error:", error);
+		}
+	};
 
 	getUserSymbols = async () => {
 		try {
-			this.setState({ loadingText: "Carregando lista de ações..." });
+			this.props.dispatch({
+				type: "UPDATE_LOADING_TEXT",
+				data: "Carregando lista de ações...",
+			});
 
-			/* await AsyncStorage.setItem(
-				"userSymbols",
-				JSON.stringify([
-					"TSLA",
-					"AAPL",
-					"GOOGL",
-					"FB",
-					"PBR",
-					"TSLA",
-					"AAPL",
-					"GOOGL",
-					"FB",
-					"PBR",
-					"TSLA",
-					"AAPL",
-					"GOOGL",
-					"FB",
-					"PBR",
-				]),
-			); */
 			const userSymbolsString = await AsyncStorage.getItem("userSymbols");
 			const userSymbols = JSON.parse(userSymbolsString);
 			this.props.dispatch({
@@ -91,28 +87,32 @@ export default class AppScreen extends React.Component {
 		});
 	};
 
-	renderLoading() {
-		return (
-			<View style={styles.containerFlex}>
-				<Image source={MonetusLogo} />
-				<ActivityIndicator size="large" color="#0047BB" />
-				<Text>{this.state.loadingText}</Text>
-			</View>
-		);
-	}
-
 	onChangeText = text => {
 		this.setState({ isLoading: true, value: text });
 	};
 
 	addNewSymbol = async symbol => {
+
+        if(!symbol){
+            Alert.alert("Ooops!", "Você precisa digitar um simbolo.");
+            return;
+        }
+
 		const userSymbolsString = await AsyncStorage.getItem("userSymbols");
 		let userSymbols = JSON.parse(userSymbolsString);
 		if (!userSymbols) userSymbols = [];
 
+		symbol = String(symbol).toUpperCase();
+
 		const findSymbol = _.findWhere(this.props.actionsDetails, { symbol });
+		const symbolExists = _.findWhere(this.props.symbols, { symbol });
 		if (findSymbol) {
 			Alert.alert("Ooops!", "Você já adicionou esse simbolo.");
+			return;
+		}
+
+		if (!symbolExists) {
+			Alert.alert("Ooops!", "Não encontramos a simbolo informado.");
 			return;
 		}
 
@@ -123,20 +123,33 @@ export default class AppScreen extends React.Component {
 			data: userSymbols,
 		});
 
-		this.fetchDetailsBySymbol(userSymbols);
+		//this.fetchDetailsBySymbol(userSymbols);
 
 		await AsyncStorage.setItem("userSymbols", JSON.stringify(userSymbols));
 	};
 
+	renderLoading() {
+		return (
+			<View style={styles.containerFlex}>
+				<View style={styles.defaultPadding}>
+					<Image source={MonetusLogo} style={[styles.defaultPadding, styles.imgLogo]} />
+				</View>
+				<ActivityIndicator size="large" color="#0047BB" />
+				<Text style={styles.defaultPadding}>{this.props.loadingText}</Text>
+			</View>
+		);
+	}
+
 	renderNewActionInput = () => {
 		return (
 			<View style={styles.searchRow}>
+				<Image source={MonetusLogo} style={[styles.defaultPadding, styles.imgLogoInput]} />
 				<TextInput
 					style={styles.searchInput}
 					returnKeyType="send"
-					value={this.state.query}
 					placeholder="Informe o simbolo de uma ação para adicionar"
-					onSubmitEditing={e => this.addNewSymbol(e.nativeEvent.text)}
+                    onSubmitEditing={e => this.addNewSymbol(e.nativeEvent.text)}
+                    autoCapitalize="characters"
 				/>
 			</View>
 		);
@@ -151,29 +164,25 @@ export default class AppScreen extends React.Component {
 			<View style={styles.container}>
 				<StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
 				{this.renderNewActionInput()}
-				{_.size(this.props.actionsDetails) ? (
+				{_.size(this.props.userSymbols) ? (
 					<ScrollView>
-						{_.map(this.props.actionsDetails, (action, index) => {
+						{_.map(this.props.userSymbols, (symbol, index) => {
 							return (
 								<Animatable.View
 									animation={index % 2 === 0 ? "slideInRight" : "slideInLeft"}
 									useNativeDriver={true}
 									key={_.uniqueId()}>
-									<TouchableOpacity>
-										<ActionsSectionComponent
-											top={Number(action.latestPrice)}
-											bottom={action.companyName}
-											symbol={action.symbol}
-											fixed={2}
-										/>
-									</TouchableOpacity>
+									<ActionsSectionComponent symbol={symbol} />
 								</Animatable.View>
 							);
 						})}
 					</ScrollView>
 				) : (
-					<View>
-						<Text style={styles.noActionsText}>Você não adicionou nenhuma ação ainda...</Text>
+					<View style={[styles.defaultPadding, styles.containerFlex]}>
+						<Image source={MonetusLogo} style={[styles.defaultPadding, styles.imgLogo]} />
+						<Text style={[styles.noActionsText, styles.defaultPadding]}>
+							Você não adicionou nenhuma ação ainda...
+						</Text>
 					</View>
 				)}
 			</View>

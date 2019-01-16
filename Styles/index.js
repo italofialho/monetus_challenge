@@ -19,38 +19,43 @@ export default StyleSheet.create({
 		padding: 16,
 	},
 	priceSectionTop: {
-		color: "#000",
+		color: "#0047bb",
 		fontSize: 32,
 	},
 	priceSectionBottom: {
-		color: "#000",
+		color: "#657786",
 		fontSize: 12,
 		marginTop: 2,
 	},
 	searchRow: {
-		flexDirection: "row",
-		justifyContent: "center",
+		flexDirection: "column",
+		justifyContent: "space-between",
 		alignItems: "center",
-		padding: 20,
+		padding: 10,
 		width,
 	},
-	searchLogo: {
-		flex: 1,
-		height: undefined,
-		width: undefined,
-		margin: 20,
+	imgLogo: {
+		width: width * .5,
+		height: width * .5,
+        resizeMode: "contain",
+    },
+    imgLogoInput: {
+		width: width * .15,
+        height: width * .15,
+        margin: 10,
 	},
 	searchInput: {
 		width: width * 0.9,
-		borderColor: "#dedede",
+		borderColor: "#0047bb",
 		borderWidth: 1,
 		backgroundColor: "#fff",
-		borderRadius: 5,
-        elevation: 3,
-        padding: 10
-    },
-    noActionsText:{
-        textAlign: "center",
-        fontSize: 22,
-    }
+		padding: 10,
+	},
+	noActionsText: {
+		textAlign: "center",
+		fontSize: 22,
+	},
+	defaultPadding: {
+		padding: 20,
+	},
 });
