@@ -20,6 +20,7 @@ class ActionsSectionComponent extends React.Component {
 			symbolChart: [],
 			lastUpdateTimeOut: 0,
 			updating: false,
+			intervalId: null,
 		};
 	}
 
@@ -28,17 +29,19 @@ class ActionsSectionComponent extends React.Component {
 			this.setState({ value });
 		});
 		this.fetchDetailsBySymbol(this.props.symbol);
-		setInterval(() => {
+		const intervalId = setInterval(() => {
 			this.setState({ lastUpdateTimeOut: this.state.lastUpdateTimeOut - 1 }, () => {
 				if (this.state.lastUpdateTimeOut === 0) {
 					this.updateDetailsBySymbol(this.props.symbol);
 				}
 			});
 		}, 1000);
+		this.setState({ intervalId });
 	}
 
 	componentWillUnmount() {
 		this.state.display.removeAllListeners();
+		clearInterval(this.state.intervalId);
 	}
 
 	fetchDetailsBySymbol = async symbol => {

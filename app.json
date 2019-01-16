@@ -20,6 +20,9 @@
 		},
 		"ios": {
 			"supportsTablet": true
-		}
+        },
+        "android":{
+            "package": "com.italofialho.monetus.challenge"
+        }
 	}
 }
